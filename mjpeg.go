@@ -17,14 +17,15 @@ import (
 
 // Decoder decode motion jpeg
 type Decoder struct {
-    r *multipart.Reader
-    m sync.Mutex
+    closer io.Closer
+    r      *multipart.Reader
 }
 
 // NewDecoder return new instance of Decoder
 func NewDecoder(r io.Reader, b string) *Decoder {
     d := new(Decoder)
     d.r = multipart.NewReader(r, b)
+    d.closer, _ = r.(io.Closer)
     return d
 }
 
@@ -57,6 +58,14 @@ func (d *Decoder) Decode() (image.Image, error) {
         return nil, err
     }
     return jpeg.Decode(p)
+}
+
+// Close reader if it's an io.Closer interface
+func (d *Decoder) Close() error {
+    if d.closer != nil {
+        return d.closer.Close()
+    }
+    return nil
 }
 
 type Stream struct {
