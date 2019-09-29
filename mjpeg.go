@@ -3,8 +3,6 @@ package mjpeg
 import (
     "errors"
     "fmt"
-    "image"
-    "image/jpeg"
     "io"
     "mime"
     "mime/multipart"
@@ -13,6 +11,9 @@ import (
     "strings"
     "sync"
     "time"
+
+    "github.com/sug0/go-libjpeg/jpeg"
+    "github.com/sug0/go-libjpeg/rgb"
 )
 
 // Decoder decode motion jpeg
@@ -52,12 +53,12 @@ func NewDecoderFromURL(u string) (*Decoder, error) {
 }
 
 // Decode do decoding
-func (d *Decoder) Decode() (image.Image, error) {
+func (d *Decoder) Decode(img *rgb.Image) (*rgb.Image, error) {
     p, err := d.r.NextPart()
     if err != nil {
         return nil, err
     }
-    return jpeg.Decode(p)
+    return jpeg.DecodeIntoRGBBuf(img, p, &jpeg.DecoderOptions{})
 }
 
 // Close reader if it's an io.Closer interface
